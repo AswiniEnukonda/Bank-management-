@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Dashboard - Apex Bank</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="brand">
+            <div class="brand-icon">$</div>
+            <span>Apex Bank</span>
+        </div>
+        <div class="nav-user">
+            <span class="user-badge" id="user-badge-name">Customer</span>
+            <button class="btn btn-secondary" onclick="logout()">Sign Out</button>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <div class="hero-title" style="font-size: 32px; margin-bottom: 24px;">Welcome Back, <span id="welcome-name">...</span></div>
+
+        <!-- Bank Card & Stats Overview -->
+        <div style="display: grid; grid-template-columns: 360px 1fr; gap: 24px;">
+            <div>
+                <div class="credit-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 14px; font-weight: 700; color: var(--accent-gold);">APEX BLACK CARD</span>
+                        <div class="card-chip"></div>
+                    </div>
+                    <div class="card-number" id="card-acc-num">ACC •••• ••••</div>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                        <div>
+                            <div style="font-size: 11px; color: var(--text-muted);">ACCOUNT HOLDER</div>
+                            <div style="font-size: 14px; font-weight: 600;" id="card-holder">...</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: var(--text-muted);">STATUS</div>
+                            <span class="badge badge-success" id="card-status">ACTIVE</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel" style="display: flex; flex-direction: column; justify-content: center;">
+                <div class="stat-title">PRIMARY ACCOUNT BALANCE</div>
+                <div class="stat-value" style="font-size: 48px; color: var(--accent-gold);" id="primary-balance">$0.00</div>
+                <div style="font-size: 14px; color: var(--text-secondary);">Available across Instant Transfer & Wire</div>
+            </div>
+        </div>
+
+        <!-- Quick Action Buttons -->
+        <div class="action-grid" style="margin-top: 24px;">
+            <button class="btn btn-primary" onclick="openModal('modal-deposit')">+ Deposit Funds</button>
+            <button class="btn btn-secondary" onclick="openModal('modal-withdraw')">- Withdraw Funds</button>
+            <button class="btn btn-secondary" onclick="openModal('modal-transfer')">⇄ Transfer Money</button>
+            <button class="btn btn-emerald" onclick="openModal('modal-loan')">⚡ Apply for Loan</button>
+        </div>
+
+        <!-- Transactions Ledger Section -->
+        <div class="glass-panel" style="margin-bottom: 30px;">
+            <h3 style="margin-bottom: 16px;">Transaction History</h3>
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Balance After</th>
+                            <th>Reference Account</th>
+                            <th>Description</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tx-history-tbody">
+                        <tr><td colspan="6">Loading transactions...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Loans Section -->
+        <div class="glass-panel">
+            <h3 style="margin-bottom: 16px;">Active Loans</h3>
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Loan ID</th>
+                            <th>Amount Requested</th>
+                            <th>Interest Rate</th>
+                            <th>Term</th>
+                            <th>Monthly Est.</th>
+                            <th>Remaining</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="loans-tbody">
+                        <tr><td colspan="7">Loading loan applications...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deposit Modal -->
+    <div class="modal-overlay" id="modal-deposit">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 20px;">Deposit Funds</h3>
+            <form onsubmit="handleDeposit(event)">
+                <div class="form-group">
+                    <label>Target Account</label>
+                    <select id="deposit-acc-select" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                    <label>Amount ($)</label>
+                    <input type="number" step="0.01" id="deposit-amount" class="form-control" placeholder="0.00" required>
+                </div>
+                <div class="form-group">
+                    <label>Note / Description</label>
+                    <input type="text" id="deposit-desc" class="form-control" placeholder="e.g. Savings deposit">
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 24px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Confirm Deposit</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-deposit')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Withdraw Modal -->
+    <div class="modal-overlay" id="modal-withdraw">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 20px;">Withdraw Funds</h3>
+            <form onsubmit="handleWithdraw(event)">
+                <div class="form-group">
+                    <label>Source Account</label>
+                    <select id="withdraw-acc-select" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                    <label>Amount ($)</label>
+                    <input type="number" step="0.01" id="withdraw-amount" class="form-control" placeholder="0.00" required>
+                </div>
+                <div class="form-group">
+                    <label>Note / Description</label>
+                    <input type="text" id="withdraw-desc" class="form-control" placeholder="e.g. ATM Cash">
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 24px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Confirm Withdrawal</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-withdraw')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Transfer Modal -->
+    <div class="modal-overlay" id="modal-transfer">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 20px;">Peer Transfer</h3>
+            <form onsubmit="handleTransfer(event)">
+                <div class="form-group">
+                    <label>From Account</label>
+                    <select id="transfer-acc-select" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                    <label>Recipient Account Number</label>
+                    <input type="text" id="transfer-to-acc" class="form-control" placeholder="ACC1234567890" required>
+                </div>
+                <div class="form-group">
+                    <label>Amount ($)</label>
+                    <input type="number" step="0.01" id="transfer-amount" class="form-control" placeholder="0.00" required>
+                </div>
+                <div class="form-group">
+                    <label>Note / Description</label>
+                    <input type="text" id="transfer-desc" class="form-control" placeholder="e.g. Invoice payment">
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 24px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Execute Transfer</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-transfer')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loan Modal -->
+    <div class="modal-overlay" id="modal-loan">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 20px;">Apply for Personal/Business Loan</h3>
+            <form onsubmit="handleLoan(event)">
+                <div class="form-group">
+                    <label>Requested Loan Amount ($)</label>
+                    <input type="number" step="100" id="loan-amount" class="form-control" placeholder="10000" required>
+                </div>
+                <div class="form-group">
+                    <label>Term Duration</label>
+                    <select id="loan-term" class="form-control">
+                        <option value="12">12 Months (1 Year)</option>
+                        <option value="24" selected>24 Months (2 Years)</option>
+                        <option value="36">36 Months (3 Years)</option>
+                        <option value="60">60 Months (5 Years)</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 24px;">
+                    <button type="submit" class="btn btn-emerald" style="flex: 1;">Submit Application</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-loan')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

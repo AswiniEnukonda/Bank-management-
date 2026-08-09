@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard & MySQL Workbench - Apex Bank</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="brand">
+            <div class="brand-icon" style="background: var(--accent-rose); color: #fff;">⚙</div>
+            <span>Apex Bank Admin</span>
+        </div>
+        <div class="nav-user">
+            <span class="user-badge" style="border-color: var(--accent-rose); color: var(--accent-rose);" id="admin-badge">Admin System</span>
+            <button class="btn btn-secondary" onclick="logout()">Sign Out</button>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <!-- Financial Overview Cards -->
+        <div class="stats-grid">
+            <div class="glass-panel stat-card">
+                <div class="stat-title">Database Engine</div>
+                <div class="stat-value" style="color: var(--accent-gold);" id="stat-engine">...</div>
+                <div style="font-size: 12px; color: var(--text-muted);">Active Backend Driver</div>
+            </div>
+            <div class="glass-panel stat-card">
+                <div class="stat-title">Total Bank Liquidity</div>
+                <div class="stat-value" style="color: var(--accent-emerald);" id="stat-deposits">$0.00</div>
+                <div style="font-size: 12px; color: var(--text-muted);">Active Customer Deposits</div>
+            </div>
+            <div class="glass-panel stat-card">
+                <div class="stat-title">Approved Loan Capital</div>
+                <div class="stat-value" style="color: var(--accent-blue);" id="stat-loans">$0.00</div>
+                <div style="font-size: 12px; color: var(--text-muted);">Active Bank Loans</div>
+            </div>
+            <div class="glass-panel stat-card">
+                <div class="stat-title">Registered Customers</div>
+                <div class="stat-value" id="stat-customers">0</div>
+                <div style="font-size: 12px; color: var(--text-muted);" id="stat-accounts-info">0 Accounts</div>
+            </div>
+        </div>
+
+        <!-- Live SQL Console Workbench -->
+        <div class="glass-panel" style="margin-bottom: 30px; border-color: rgba(56, 189, 248, 0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h3 style="color: #38bdf8;">Interactive MySQL / SQL Query Console</h3>
+                <span style="font-size: 12px; color: var(--text-muted);">SELECT queries only for security</span>
+            </div>
+
+            <div style="margin-bottom: 12px; display: flex; gap: 8px;">
+                <button class="btn btn-secondary" style="font-size: 12px; padding: 4px 10px;" onclick="setQuery('SELECT * FROM users;')">SELECT * FROM users;</button>
+                <button class="btn btn-secondary" style="font-size: 12px; padding: 4px 10px;" onclick="setQuery('SELECT * FROM accounts;')">SELECT * FROM accounts;</button>
+                <button class="btn btn-secondary" style="font-size: 12px; padding: 4px 10px;" onclick="setQuery('SELECT * FROM transactions ORDER BY created_at DESC LIMIT 10;')">Top 10 Transactions</button>
+                <button class="btn btn-secondary" style="font-size: 12px; padding: 4px 10px;" onclick="setQuery('SELECT * FROM loans WHERE status=\'PENDING\';')">Pending Loans</button>
+            </div>
+
+            <textarea id="sql-input" class="sql-editor" placeholder="Enter SQL SELECT Query...">SELECT * FROM transactions ORDER BY created_at DESC LIMIT 10;</textarea>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+                <button class="btn btn-primary" onclick="runSqlQuery()">⚡ Execute Query</button>
+                <span id="sql-metrics" style="font-size: 13px; color: var(--accent-gold);"></span>
+            </div>
+
+            <div id="sql-results-wrapper" class="table-responsive" style="margin-top: 16px; display: none;">
+                <table class="custom-table" id="sql-results-table">
+                    <thead id="sql-results-thead"></thead>
+                    <tbody id="sql-results-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Loan Approval Queue -->
+        <div class="glass-panel" style="margin-bottom: 30px;">
+            <h3 style="margin-bottom: 16px;">Loan Approval Queue</h3>
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Loan ID</th>
+                            <th>Customer Name</th>
+                            <th>Username</th>
+                            <th>Requested Amount</th>
+                            <th>Term</th>
+                            <th>Monthly Est.</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-loans-tbody">
+                        <tr><td colspan="8">Loading loan applications...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Customer Accounts Moderation -->
+        <div class="glass-panel" style="margin-bottom: 30px;">
+            <h3 style="margin-bottom: 16px;">Customer Account Management</h3>
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Username</th>
+                            <th>Full Name</th>
+                            <th>Email</th>
+                            <th>Accounts & Balances</th>
+                            <th>Status</th>
+                            <th>Joined</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-users-tbody">
+                        <tr><td colspan="7">Loading customer directory...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- System Audit Trail -->
+        <div class="glass-panel">
+            <h3 style="margin-bottom: 16px;">Security & Operational Audit Logs</h3>
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Log ID</th>
+                            <th>User</th>
+                            <th>Action</th>
+                            <th>Details</th>
+                            <th>IP Address</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-audit-tbody">
+                        <tr><td colspan="6">Loading audit logs...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/admin.js"></script>
+</body>
+</html>
